@@ -1,0 +1,101 @@
+﻿@model List<OrderItemModel>
+
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<style>
+    ul#itemGroup img.item--img {
+        width: 11vw;
+    }
+
+    /* Loading */
+    ul#itemGroup .item div.loading {
+        opacity: 0;
+        transition: all 1s;
+        position: absolute;
+        top: 0;
+        left: 50vw;
+        transform: translateX(-50%);
+    }
+    ul#itemGroup .item.pending div.loading {
+        opacity: 1;
+    }
+
+    ul#itemGroup .item{
+        position: relative;
+    }
+
+    ul#itemGroup .item article {
+        opacity: 0;
+        transition: all 1s;
+        transform: translateX(-100vw);
+    }
+
+    ul#itemGroup .item.await article {
+        display: none;
+    }
+
+    ul#itemGroup .item.pending article {
+    }
+
+    ul#itemGroup .item.complete article {
+        opacity: 1;
+        transform: translateX(0);
+    }
+</style>
+<ul id="itemGroup" class="media-list">
+    @foreach (var item in Model)
+    {
+        <li id="@item.Uid" class="media item await">
+            <div class="loading">Loading ...</div>
+            <article>
+                <div class="media-left">
+                    <a href="#">
+                        <img class="item--img media-object" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Everest_North_Face_toward_Base_Camp_Tibet_Luca_Galuzzi_2006.jpg/1280px-Everest_North_Face_toward_Base_Camp_Tibet_Luca_Galuzzi_2006.jpg" alt="...">
+                    </a>
+                </div>
+                <div class="media-body">
+                    <h4 class="media-heading">Media heading</h4>
+                    Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis.
+                </div>
+            </article>
+        </li>
+    }
+</ul>
+
+<script>
+    (function () {
+        ShowHistStartUp();
+    })()
+
+    function ShowHistStartUp() {
+        function nextItem() {
+            return document.querySelector('ul#itemGroup li.item.await');
+        }
+
+        function processItem(item) {
+            item.classList.remove('await');
+            item.classList.add('pending');
+        }
+
+        function completeItem(item) {
+            item.classList.remove('pending');
+            item.classList.add('complete');
+        }
+
+        var thread = setInterval(function () {
+            var next = nextItem();
+            if (next === null) {
+                clearInterval(thread);
+                return false;
+            }
+
+            processItem(next);
+
+            setTimeout(function () {
+                completeItem(next);
+            }, 800);
+        }, 500);
+    }
+</script>
