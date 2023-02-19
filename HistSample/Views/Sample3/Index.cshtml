@@ -43,13 +43,22 @@
     }
 
     /* Item */
-    ul#itemGroup .item{
+    ul#itemGroup .item {
+        /*height: 100vw;*/
+        transition: all 1s;
         position: relative;
     }
+    ul#itemGroup .item.sink {
+        line-height: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        opacity: 0;
+    }
+
     ul#itemGroup .item article {
         opacity: 0;
         transition: all .5s;
-        transform: translateX(100vw);
+        /*transform: translateX(100vw);*/
     }
 
     ul#itemGroup .item.fadin article {
@@ -135,24 +144,28 @@
             index++;
         }
 
+        //function insertHist(html) {
+        //    var el = document.createElement('li');
+        //    el.classList.add('media', 'item');
+        //    el.innerHTML = html;
+
+        //    document.getElementById('itemGroup').appendChild(el);
+
+        //    return el;
+        //}
+
         function insertHist(html) {
             var el = document.createElement('li');
             el.classList.add('media', 'item');
             el.innerHTML = html;
 
             document.getElementById('itemGroup').appendChild(el);
+            var height = el.offsetHeight;
+            el.style.height = height + "px";
 
-            return el;
-        }
-
-        function insertHist(html) {
-            var el = document.createElement('li');
-            el.classList.add('media', 'item');
-            el.innerHTML = html;
-
-            document.getElementById('itemGroup').appendChild(el);
-
-            setTimeout(function () { el.classList.add('fadin'); }, 100);
+            setTimeout(function () {
+                el.classList.add('fadin');
+            }, 100);
         }
 
         function isInnerScrollTrigger() {
