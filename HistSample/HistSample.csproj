@@ -121,6 +121,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\Sample3Controller.cs" />
     <Compile Include="Controllers\Sample2Controller.cs" />
     <Compile Include="Controllers\Sample1Controller.cs" />
     <Compile Include="Global.asax.cs">
@@ -166,6 +167,8 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Sample1\Index.cshtml" />
     <Content Include="Views\Sample2\Index.cshtml" />
+    <Content Include="Views\Sample3\Index.cshtml" />
+    <Content Include="Views\Sample3\_HistItem.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

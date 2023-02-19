@@ -1,0 +1,16 @@
+﻿@model OrderItemDetailModel
+@{
+    Layout = null;
+}
+
+<article data-item-guid="@Model.Guid">
+    <div class="media-left">
+        <a href="#">
+            <img class="item--img media-object" src="@Model.ImgUrl" alt="...">
+        </a>
+    </div>
+    <div class="media-body">
+        <h4 class="media-heading item--title">@Model.ItemName</h4>
+        <span class="item--detail">@Model.Detail</span>
+    </div>
+</article>

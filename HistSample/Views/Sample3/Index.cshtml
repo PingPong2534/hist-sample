@@ -1,0 +1,209 @@
+﻿@model List<OrderItemModel>
+
+@{
+    ViewBag.Title = "Home Page";
+    var jsOrder = toJsArray(Model.Select(x => x.Guid).ToArray());
+}
+
+@functions{
+    string toJsArray(string[] val)
+    {
+        for (int i = 0; i < val.Length; i++)
+        {
+            val[i] = "'" + val[i] + "'";
+        }
+
+        return string.Join(", ", val);
+    }
+} 
+
+<style>
+    .d-none{
+        display: none !important;
+    }
+
+    ul#itemGroup img.item--img {
+        width: 11vw;
+    }
+
+    /* Loading */
+    div.loading {
+        position: fixed;
+        bottom: 0;
+        right: 50vw;
+        width: 80vw;
+        transform: translateX(50%);
+        transition: all 1s;
+        text-align: center;
+    }
+    div.loading div#loadingDisplay {
+        opacity: 0;
+        background: #ffffff00;
+        transition: all 1s;
+    }
+
+    /* Item */
+    ul#itemGroup .item{
+        position: relative;
+    }
+    ul#itemGroup .item article {
+        opacity: 0;
+        transition: all .5s;
+        transform: translateX(100vw);
+    }
+
+    ul#itemGroup .item.fadin article {
+        opacity: 1;
+        transform: translateX(0);
+    }
+</style>
+<ul id="itemGroup" class="media-list">
+
+</ul>
+<div class="loading">
+    <div id="loadingDisplay">
+        Loading ...
+    </div>
+</div>
+
+<script>
+    (function () {
+        ShowHistStartUp();
+    })()
+
+    function ShowHistStartUp() {
+        var queue = [@Html.Raw(jsOrder)];
+        var index = 0;
+        var retry = 0;
+        var processing;
+        
+        function setLoadingDisplay(set) {
+            var el = document.getElementById('loadingDisplay');
+            if (set) {
+                el.parentElement.classList.remove('d-none');
+                el.parentElement.style.background = "#ffffffa1";
+                el.style.opacity = "1";
+            } else {
+                el.parentElement.style.background = "#ffffff00";
+                el.style.opacity = "0";
+                setTimeout(function () { el.parentElement.classList.add('d-none'); }, 500);
+            }
+
+            processing = set;
+        }
+
+        //return not success item or next item
+        function nextItem() {
+            if (index <= queue.length - 1) {
+                return { guid: queue[index] };
+            } else {
+                return null;
+            }
+        }
+
+        function loadItemDetail(guid) {
+            return new Promise(function (resolve, reject) {
+                var myHeaders = new Headers();
+                myHeaders.append("Content-Type", "application/json");
+
+                var raw = JSON.stringify({
+                    guid
+                });
+
+                var requestOptions = {
+                    method: 'POST',
+                    headers: myHeaders,
+                    body: raw,
+                    redirect: 'follow'
+                };
+
+                fetch("@Url.Action("LoadDetail")?guid=" + guid, requestOptions)
+                    .then(function (response) {
+                        return response.text();
+                    })
+                    .then(function (result) {
+                        resolve(result);
+                    })
+                    .catch(function (error) {
+                        reject(error);
+                    });
+            });
+        }
+
+        function completeItem() {
+            retry = 0;
+            index++;
+        }
+
+        function insertHist(html) {
+            var el = document.createElement('li');
+            el.classList.add('media', 'item');
+            el.innerHTML = html;
+
+            document.getElementById('itemGroup').appendChild(el);
+
+            return el;
+        }
+
+        function insertHist(html) {
+            var el = document.createElement('li');
+            el.classList.add('media', 'item');
+            el.innerHTML = html;
+
+            document.getElementById('itemGroup').appendChild(el);
+
+            setTimeout(function () { el.classList.add('fadin'); }, 100);
+        }
+
+        function isInnerScrollTrigger() {
+            var scrollTriggerHeight = window.screen.height * 2;
+            var currentScroll = document.documentElement.scrollTop + window.screen.height;
+            var restScrollHeight = document.documentElement.scrollHeight - currentScroll;
+            return restScrollHeight <= scrollTriggerHeight;
+        }
+
+        window.addEventListener("scroll", function (event) {
+            if (!processing) {
+                showHistUp();
+            }
+        });
+
+        async function showHistUp() {
+            if (!isInnerScrollTrigger()) {
+                console.log('reach scoll limit');
+                setLoadingDisplay(false);
+                return false;
+            }
+
+            var item = nextItem();
+            if (item === null) {
+                console.log('out of item');
+                setLoadingDisplay(false);
+                return false;
+            }
+
+            setLoadingDisplay(true);
+
+            try {
+                var detailHtml = await loadItemDetail(item.guid);
+                insertHist(detailHtml);
+                completeItem();
+                showHistUp();
+            } catch (e) {
+                console.error(e);
+
+                //retry
+                if (retry >= 3) {
+                    alert('have error please contact admin');
+                    return false;
+                }
+                retry++;
+                setTimeout(function () {
+                    showHistUp();
+                }, 500);
+            }
+        }
+
+        showHistUp();
+    }
+</script>
