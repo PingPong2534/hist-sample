@@ -1,0 +1,168 @@
+﻿@model List<OrderItemModel>
+
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<style>
+    ul#itemGroup img.item--img {
+        width: 11vw;
+    }
+
+    /* Loading */
+    ul#itemGroup .item div.loading {
+        opacity: 0;
+        transition: all 1s;
+        position: absolute;
+        top: 0;
+        left: 50vw;
+        transform: translateX(-50%);
+    }
+    ul#itemGroup .item.pending div.loading {
+        opacity: 1;
+    }
+
+    ul#itemGroup .item{
+        position: relative;
+    }
+
+    ul#itemGroup .item article {
+        opacity: 0;
+        transition: all 1s;
+        transform: translateX(-100vw);
+    }
+
+    ul#itemGroup .item.await article {
+        display: none;
+    }
+
+    ul#itemGroup .item.pending article {
+    }
+
+    ul#itemGroup .item.complete article {
+        opacity: 1;
+        transform: translateX(0);
+    }
+</style>
+<ul id="itemGroup" class="media-list">
+    @foreach (var item in Model)
+    {
+        <li data-item-guid="@item.Guid" class="media item await">
+            <div class="loading">Loading ...</div>
+            <article>
+                <div class="media-left">
+                    <a href="#">
+                        <img class="item--img media-object" src="" alt="...">
+                    </a>
+                </div>
+                <div class="media-body">
+                    <h4 class="media-heading item--title"></h4>
+                    <span class="item--detail"></span>
+                </div>
+            </article>
+        </li>
+    }
+</ul>
+
+<script>
+    (function () {
+        ShowHistStartUp();
+    })()
+
+    function ShowHistStartUp() {
+        //reture not success item or next item
+        function nextItem() {
+            var notSuccessEl = document.querySelector('ul#itemGroup li.item.pending');
+            if (notSuccessEl != null)
+                return notSuccessEl;
+
+            return document.querySelector('ul#itemGroup li.item.await');
+        }
+
+        function processItem(item) {
+            item.classList.remove('await');
+            item.classList.add('pending');
+        }
+
+        function completeItem(item) {
+            item.classList.remove('pending');
+            item.classList.add('complete');
+        }
+
+        function getGuid(el) {
+            return el.getAttribute('data-item-guid');
+        }
+
+        function updateElementData(el = new Element(), data) {
+            //console.log(data);
+
+            var imgEl = el.querySelector('.item--img');
+            var titleEl = el.querySelector('.item--title');
+            var detailEl = el.querySelector('.item--detail');
+
+            imgEl.setAttribute('src', data.ImgUrl);
+            titleEl.innerHTML = data.ItemName;
+            detailEl.innerHTML = data.Detail;
+        }
+
+        //const toImage = src => new Promise((resolve, reject) => {
+        //    const image = new Image();
+        //    image.src = src;
+        //    image.onload = () => {
+        //        const { height, width } = image;
+        //        resolve({ height, width });
+        //    }
+        //    image.onerror = error => reject(error);
+        //});
+
+        function loadItemDetail(guid) {
+            return new Promise(function (resolve, reject) {
+                var myHeaders = new Headers();
+                myHeaders.append("Content-Type", "application/json");
+
+                var raw = JSON.stringify({
+                    guid
+                });
+
+                var requestOptions = {
+                    method: 'POST',
+                    headers: myHeaders,
+                    body: raw,
+                    redirect: 'follow'
+                };
+
+                fetch("@Url.Action("LoadDetail")?guid=" + guid, requestOptions)
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (result) {
+                        resolve(result);
+                    })
+                    .catch(function (error) {
+                        reject(error);
+                    });
+            });
+        }
+
+        var thread = setInterval(async function () {
+            var next = nextItem();
+            if (next === null) {
+                clearInterval(thread);
+                console.log('end');
+                return false;
+            }
+
+            processItem(next);
+
+            var guid = getGuid(next);
+
+            try {
+                var detailData = await loadItemDetail(guid);
+                updateElementData(next, detailData);
+                completeItem(next);
+            } catch (e) {
+                console.error(e);
+            }
+        }, 100);
+    }
+</script>

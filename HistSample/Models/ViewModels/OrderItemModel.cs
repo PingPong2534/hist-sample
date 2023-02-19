@@ -2,6 +2,6 @@
 {
     public class OrderItemModel
     {
-        public string Uid { get; set; }
+        public string Guid { get; set; }
     }
 }
